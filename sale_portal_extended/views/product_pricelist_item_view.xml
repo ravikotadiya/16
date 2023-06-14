@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="sale_portal_extended_inherit_product_pricelist_item_form_view" model="ir.ui.view">
+            <field name="name">sale.portal.extended.inherit.product.pricelist.item.form.view</field>
+            <field name="model">product.pricelist.item</field>
+            <field name="inherit_id" ref="product.product_pricelist_item_form_view"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <field name="min_quantity" position="after">
+                    <field name="calculate_based_on_order_amount"/>
+                </field>
+                <xpath expr="//group[@name='pricelist_rule_related']" position="after">
+                    <field name="item_range_ids" nolabel="1"
+                           attrs="{'invisible': [('calculate_based_on_order_amount','=',False)]}">
+                        <tree editable="bottom">
+                            <field name="min_amount"/>
+                            <field name="max_amount"/>
+                            <field name="discount_perecent" string="Discount %"/>
+                        </tree>
+                    </field>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
