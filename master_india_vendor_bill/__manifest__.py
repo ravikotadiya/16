@@ -1,6 +1,6 @@
 {
     'name': 'Vendor Bill Master India',
-    'version': '15.0',
+    'version': '16.0',
     'category': 'API',
     'author': '',
     'website': '',
