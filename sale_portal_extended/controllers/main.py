@@ -35,13 +35,19 @@ class CustomerPortal(portal.CustomerPortal):
                 website=True)
     def create_update_quote(self, **kwargs):
         sale_order = request.env['sale.order'].sudo()  # sale order object
-
+        partner_id = request.env.user.partner_id
+        if not partner_id.team_id:
+            json_data = json.dumps({'result': 'error', 'log': "Sales Team is not configure into Partner {}".format(partner_id.name)})
+            return Response(json_data, content_type='application/json')
+        if not partner_id.property_product_pricelist:
+            json_data = json.dumps({'result': 'error', 'log': "Pricelist is not configure into Partner {}".format(partner_id.name)})
+            return Response(json_data, content_type='application/json')
         file = kwargs.get('attachment')
         if file:
             keys = ['product', 'quantity', 'uom', 'description']
             not_found = {'product': [], 'uom': [], 'tax': [], 'route': [], 'lot': []}
             duplicate_found = {'product': [], 'uom': [], 'tax': [], 'route': [], 'lot': []}
-            empty_row = {'product': [], 'uom': [], 'price_unit': [], 'quantity': []}
+            empty_row = {'product': [], 'uom': [], 'quantity': []}
             order = []
             line_data = {}
             order_line = []
@@ -132,7 +138,7 @@ class CustomerPortal(portal.CustomerPortal):
             })
             # Message post with attachment
             sale_order.message_post(body=_('Generate Order via {}'.format(attachment.name)),
-                                           attachments=[(attachment.name, attachment.datas)], )
+                                    attachments=[(attachment.name, attachment.datas)], )
         if validation_error:
             json_data = json.dumps({'result': 'error', 'log': validation_error})
         else:
@@ -147,7 +153,6 @@ class CustomerPortal(portal.CustomerPortal):
                            'quantity': excel_value[1],
                            'uom': excel_value[2],
                            'description': excel_value[3],
-                           'price_unit': excel_value[4],
                            'row_no': row_no,
                            })
         else:
@@ -161,16 +166,6 @@ class CustomerPortal(portal.CustomerPortal):
             empty_row.get('uom').append(str(values.get('row_no')))
         if not values.get('quantity'):
             empty_row.get('quantity').append(str(values.get('row_no')))
-        price_unit = values.get('price_unit', False)
-        if not price_unit:
-            empty_row.get('price_unit').append(str(values.get('row_no')))
-        else:
-            try:
-                temp_price_unit = float(price_unit)
-                if temp_price_unit <= 0:
-                    empty_row.get('price_unit').append(str(values.get('row_no')))
-            except ValueError:
-                empty_row.get('price_unit').append(str(values.get('row_no')))
 
         return values, empty_row
 
@@ -224,9 +219,6 @@ class CustomerPortal(portal.CustomerPortal):
         if empty_row_uom:
             validation_error += "Below Rows the UOM is missing:\n" + str(empty_row_uom) + '\n\n'
 
-        empty_row_price_unit = empty_row.get('price_unit')
-        if empty_row_price_unit:
-            validation_error += "Below Rows the Cost is missing:\n" + str(empty_row_price_unit) + '\n\n'
         empty_row_quantity = empty_row.get('quantity')
         if empty_row_quantity:
             validation_error += "Below Rows the Quantity is missing:\n" + str(empty_row_quantity) + '\n\n'
@@ -265,8 +257,8 @@ class CustomerPortal(portal.CustomerPortal):
                 'product_uom_qty': rec.get('quantity') or product_id.display_name,
                 'order_id': order.id,
                 'product_uom': uom_id.id,
-                'price_unit': float(rec.get('price_unit', 0))
             })
+            line._compute_price_unit()
             print(line)
         ##line.product_id_change()
         # line.product_uom_change()
