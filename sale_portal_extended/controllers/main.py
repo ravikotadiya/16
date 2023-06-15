@@ -71,10 +71,10 @@ class CustomerPortal(portal.CustomerPortal):
                         if i == 0:
                             continue
                         else:
-                            values, empty_row = self.get_values(values, i, field, empty_row,
+                            values, empty_row = sale_order.get_values(values, i, field, empty_row,
                                                                 kwargs.get('file_type', 'csv'))
                             order_line.append(values)
-                            is_error, not_found, duplicate_found = self.validate_data(values, not_found,
+                            is_error, not_found, duplicate_found = sale_order.validate_data(values, not_found,
                                                                                       duplicate_found,
                                                                                       kwargs.get('file_type', 'csv'))
             else:
@@ -99,10 +99,10 @@ class CustomerPortal(portal.CustomerPortal):
                             map(lambda row: isinstance(row.value, bytes) and row.value.encode('utf-8') or str(
                                 row.value),
                                 sheet.row(row_no)))
-                        values, empty_row = self.get_values(values, row_no + 1, line, empty_row,
+                        values, empty_row = sale_order.get_values(values, row_no + 1, line, empty_row,
                                                             kwargs.get('file_type', 'xlsx'))
                         order_line.append(values)
-                        is_error, not_found, duplicate_found = self.validate_data(values, not_found,
+                        is_error, not_found, duplicate_found = sale_order.validate_data(values, not_found,
                                                                                   duplicate_found,
                                                                                   kwargs.get('file_type', 'xlsx'))
             validation_error = self.prepare_validation_message(empty_row, not_found, duplicate_found)
@@ -112,10 +112,7 @@ class CustomerPortal(portal.CustomerPortal):
             # if found sale_order_reference then need to update sale order line else create new one.
             if kwargs.get('sale_order_reference'):
                 sale_order = sale_order.browse(int(kwargs.get('sale_order_reference')))
-                request.env['sale.order.line'].sudo().search(
-                    [(
-                        'order_id', '=',
-                        sale_order.id)]).unlink()  # if need to update then remove all line and create new
+                sale_order.order_line.unlink()  # if need to update then remove all line and create new
             else:
                 sale_order = sale_order.create({
                     'partner_id': request.env.user.partner_id.id,
@@ -146,29 +143,7 @@ class CustomerPortal(portal.CustomerPortal):
 
         return Response(json_data, content_type='application/json')
 
-    # Sub-method which read xlxs file and return values
-    def get_values(self, values, row_no, excel_value, empty_row, type):
-        if type == 'xlsx':
-            values.update({'product': excel_value[0],
-                           'quantity': excel_value[1],
-                           'uom': excel_value[2],
-                           'description': excel_value[3],
-                           'row_no': row_no,
-                           })
-        else:
-            values.update({
-                'product': excel_value[0],
-                'quantity': excel_value[1],
-            })
-        if not values.get('product'):
-            empty_row.get('product').append(str(values.get('row_no')))
-        if not values.get('uom'):
-            empty_row.get('uom').append(str(values.get('row_no')))
-        if not values.get('quantity'):
-            empty_row.get('quantity').append(str(values.get('row_no')))
-
-        return values, empty_row
-
+    # Sub-method which read xlxs file and return value
     def validate_data(self, values, not_found, duplicate_found, type):
         product = values.get('product')
         is_error = False
