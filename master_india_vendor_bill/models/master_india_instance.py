@@ -14,8 +14,7 @@ class MasterIndiaInstance(models.Model):
     _inherit = "master.india.instance"
 
     def get_file_data(self, file_path):
-        #res = super(MasterIndiaInstance, self).get_file_data(file_path)
-        res = {'status': True, 'message': 'Data Extracted Successfully! and Data Purge is False', 'data': [{'invoice_number': {'value': 'INV/2018/0057', 'accuracy': 96.97}, 'po_number': {'value': '', 'accuracy': 0}, 'invoice_date': {'value': '09/17/2018', 'accuracy': 96.76}, 'invoice_due_date': {'value': '30-09-2018', 'accuracy': 88.23}, 'payment_terms': {'value': '', 'accuracy': 0}, 'irn': {'value': '', 'accuracy': 0}, 'ewaybill_number': {'value': '', 'accuracy': 0}, 'supplier_gstin': {'value': '', 'accuracy': 0}, 'supplier_name': {'value': 'Azure Interior Solutions Private Limited', 'accuracy': 96.81}, 'pan_number': {'value': 'BE0477.472.701', 'accuracy': 99.9}, 'buyer_gstin': {'value': '24AAHCB6536E1ZV', 'accuracy': 97.89}, 'buyer_name': {'value': 'Odoo SA', 'accuracy': 60.12}, 'buyer_pan_number': {'value': '', 'accuracy': 0}, 'ship_to_gstin': {'value': '24AAHCB6536E1ZV'}, 'total_taxable': {'value': 541.1, 'accuracy': 82.66}, 'total_igst': {'value': '', 'accuracy': 0}, 'total_cgst': {'value': '', 'accuracy': 0}, 'total_sgst': {'value': '', 'accuracy': 0}, 'total_cess': {'value': '', 'accuracy': 0}, 'total_tax_amount': {'value': '', 'accuracy': 0}, 'invoice_amount': {'value': 541.1, 'accuracy': 80.74}, 'other_charges': {'value': '', 'accuracy': 0}, 'discount': {'value': '', 'accuracy': 0}, 'bank_name': {'value': 'E Kotak Mahidra Bank', 'accuracy': 57.39}, 'account_number': {'value': '6912130859', 'accuracy': 99.47}, 'ifsc_code': {'value': 'KKBK0003551', 'accuracy': 98.28}, 'branch': {'value': '', 'accuracy': 0}, 'supplier_address': {'value': ' A405 Pushp Business Campus Ahmedabad, Gujarat, 382418', 'accuracy': 97.47}, 'buyer_address': {'value': ' Chaussée de Namur 40 Grand-Rosière 1367 Belgium', 'accuracy': 89.75}, 'shipping_address': {'value': '', 'accuracy': 0}, 'supplier_email': {'value': 'info@azureinterior.com', 'accuracy': 97.1}, 'qr_supplier_gstin': {'value': '', 'accuracy': 0}, 'qr_buyer_gstin': {'value': '', 'accuracy': 0}, 'qr_invoice_number': {'value': '', 'accuracy': 0}, 'qr_invoice_value': {'value': '', 'accuracy': 0}, 'qr_invoice_date': {'value': '', 'accuracy': 0}, 'qr_total_item': {'value': '', 'accuracy': 0}, 'qr_hsn_code': {'value': '', 'accuracy': 0}, 'qr_hash_code': {'value': '', 'accuracy': 0}}], 'table_data': [[[{'key': 0, 'item_quantity': {'value': 1.0, 'accuracy': 99.97}, 'item_unit_price': {'value': 541.1, 'accuracy': 99.98}, 'item_description': {'value': 'Redeem Reference Number: PO02529', 'accuracy': 99.99}, 'item_total_amount': {'value': 54110.0, 'accuracy': 99.95}}]]]}
+        res = super(MasterIndiaInstance, self).get_file_data(file_path)
         _logger.info("Response : {}".format(res))
         self.remove_file_from_local_system(file_path)
         log_id = self.create_log_for_upload(res, file_path.split('/')[-1:][0])
@@ -101,40 +100,17 @@ class MasterIndiaInstance(models.Model):
         return self.env["account.tax"].search(domain, limit=1)
 
     def get_converted_date(self, date):
-        try:
-            date = datetime.strptime(date, '%d-%m-%Y')
-        except Exception as e:
+        date_formt = ['%d-%m-%Y','%d-%m-%y','%d/%m/%Y','%d/%m/%y','%m/%d/%Y','%m/%d/%y','%d.%m.%Y','%d.%m.%y','%d-%b-%y','%d-%b-%Y']
+        frmt = date_formt[0]
+        while not type(date) == datetime and date_formt:
             try:
-                date = datetime.strptime(date, '%d-%m-%y')
+                date = datetime.strptime(date, frmt)
             except Exception as e:
-                try:
-                    date = datetime.strptime(date, '%d/%m/%Y')
-                except Exception as e:
-                    try:
-                        date = datetime.strptime(date, '%d/%m/%y')
-                    except Exception as e:
-                        try:
-                            date = datetime.strptime(date, '%m/%d/%Y')
-                        except Exception as e:
-                            try:
-                                date = datetime.strptime(date, '%m/%d/%y')
-                            except Exception as e:
-                                try:
-                                    date = datetime.strptime(date, '%d.%m.%Y')
-                                except Exception as e:
-                                    try:
-                                        date = datetime.strptime(date, '%d.%m.%y')
-                                    except Exception as e:
-                                        try:
-                                            date = datetime.strptime(date, '%d-%b-%y')
-                                        except Exception as e:
-                                            try:
-                                                date = datetime.strptime(date, '%d-%b-%Y')
-                                            except Exception as e:
-                                                try:
-                                                    date = datetime.strptime(date, '%d.%m.%y')
-                                                except Exception as e:
-                                                    raise UserError("Date {} format is not valid".format(date))
+                date_formt.remove(frmt)
+                if date_formt:
+                    frmt = date_formt[0]
+        if not date_formt:
+            date = ''
         return date
 
     def find_partner(self, rec):
