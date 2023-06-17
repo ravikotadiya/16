@@ -28,7 +28,8 @@ class MasterIndiaInstance(models.Model):
             partner_id = self.find_partner(rec)
             payment_term_name = rec.get('payment_terms', {}).get('value', '')
             payment_term_id = self.env["account.payment.term"].search(
-                [('name', '=ilike', '{} Days'.format(payment_term_name))], limit=1)
+                [('name', '=ilike', '{} Days'.format(payment_term_name)), '|', ('company_id', '=', self.env.company.id),
+                 ('company_id', '=', False)], limit=1)
             invoice_vals = self.prepare_vals_for_invoice(rec, partner_id, payment_term_id)
             contain_tax = self.is_response_contain_tax_amount(rec)
         item_list = []
@@ -93,7 +94,9 @@ class MasterIndiaInstance(models.Model):
         return tax_ids, taxes_not_found
 
     def get_tax_based_on_percent(self, percent, igst=False):
-        domain = [('type_tax_use', '=', 'purchase'), ('name', '=ilike', 'GST {}%'.format(percent))]
+        domain = ['|', ('company_id', '=', self.env.company.id),
+                  ('company_id', '=', False), ('type_tax_use', '=', 'purchase'),
+                  ('name', '=ilike', 'GST {}%'.format(percent))]
         if igst:
             domain.pop()
             domain.append(('name', '=ilike', 'IGST {}%'.format(percent)))
@@ -121,10 +124,12 @@ class MasterIndiaInstance(models.Model):
         partner_id = self.env["res.partner"]
         if gst or pan_no:
             partner_id = partner_id.search(
-                ['|', ('vat', '=ilike', gst), ('vat', '=ilike', pan_no), ('supplier_rank', '>', 0)], limit=1)
+                ['|', ('company_id', '=', self.env.company.id), ('company_id', '=', False), '|', ('vat', '=ilike', gst),
+                 ('vat', '=ilike', pan_no)], limit=1)
         if not partner_id and name:
             partner_id = self.env["res.partner"].search(
-                [('name', '=ilike', name), ('supplier_rank', '>', 0), ('email', '=ilike', email)], limit=1)
+                ['|', ('company_id', '=', self.env.company.id), ('company_id', '=', False), ('name', '=ilike', name),
+                 ('email', '=ilike', email)], limit=1)
         if not partner_id:
             raise UserError("No any vendor found with Name '{}' or GST '{}'".format(name, gst))
         return partner_id
@@ -161,7 +166,9 @@ class MasterIndiaInstance(models.Model):
         }
 
     def find_product_based_on_name(self, name):
-        return self.env["product.product"].search([('name', '=ilike', name)], limit=1)
+        return self.env["product.product"].search(
+            [('name', '=ilike', name), '|', ('company_id', '=', self.env.company.id),
+             ('company_id', '=', False)], limit=1)
 
     def is_response_contain_tax_amount(self, rec):
         contain_tax = False
