@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="pways_record_approval_inherit_view_move_form" model="ir.ui.view">
+            <field name="name">pways.record.approval.inherit.view.move.form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <field name="send_approve_request" invisible="1"/>
+                    <field name="show_approve_button" invisible="1"/>
+                    <field name="show_status_button" invisible="1"/>
+                    <field name="show_all" invisible="1"/>
+                    <field name="approval_ids" invisible="1"/>
+                    <field name="is_sent_to_approval" invisible="1"/>
+                    <button name="pways_action_send_approval" class="oe_stat_button" type="object"
+                            attrs="{'invisible': [('send_approve_request', '=', False)]}"
+                            string="Send For Approval">
+                    </button>
+                    <button name="pways_action_approve" class="oe_stat_button" type="object"
+                            attrs="{'invisible': [('show_approve_button', '=', False)]}"
+                            string="Approve">
+                    </button>
+                    <button name="pways_action_reject" class="oe_stat_button" type="object"
+                            attrs="{'invisible': [('show_approve_button', '=', False)]}"
+                            string="Reject">
+                    </button>
+                    <button name="pways_action_pending" class="oe_stat_button" type="object"
+                            attrs="{'invisible': [('show_status_button', '=', False)]}"
+                            string="Approval Satus">
+                    </button>
+                </field>
+                <xpath expr="//button[@name='action_post'][1]" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|','|',('hide_post_button', '=', True),
+                        ('move_type', '!=', 'entry'),('show_all','=', False)]}
+                    </attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_post'][2]" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', '|','|',('hide_post_button',
+                        '=', True), ('move_type', '=', 'entry'), ('display_inactive_currency_warning','=',True),('show_all','=', False)]}
+                    </attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

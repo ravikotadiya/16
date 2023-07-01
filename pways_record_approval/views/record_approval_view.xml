@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="record_approval_view_kanban" model="ir.ui.view">
+        <field name="name">record.approval.view.kanban</field>
+        <field name="model">record.approval</field>
+        <field name="arch" type="xml">
+            <kanban create="false" class="o_modules_kanban">
+                <field name="name"/>
+                <field name="id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_module_vignette">
+                            <div class="oe_module_desc">
+                                <h4 class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </h4>
+                                <p class="oe_module_name">
+                                    <field name="model_id"/>
+                                </p>
+                                <div class="oe_module_action" t-if="!selection_mode">
+                                    <button type="object" class="btn btn-sm btn-secondary float-end"
+                                            name="action_view_request_to_validate"
+                                            context="{'category_id':'active_id'}">To Review:
+                                        <field name="request_to_validate_count"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="pways_record_action_root" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">record.approval</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('pways_record_approval.record_approval_view_kanban')}),
+            ]"
+        />
+    </record>
+
+    <menuitem
+            id="pways_record_approvals_menu_root"
+            name="Approvals"
+            action="pways_record_action_root"
+            sequence="250"/>
+
+    <record id="record_approval_view_tree" model="ir.ui.view">
+        <field name="name">record.approval.view.tree</field>
+        <field name="model">record.approval</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="type"/>
+            </tree>
+        </field>
+    </record>
+    <record id="record_approval_view_form" model="ir.ui.view">
+        <field name="name">record.approval.view.form</field>
+        <field name="model">record.approval</field>
+        <field name="arch" type="xml">
+            <form string="Record Approval">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" required="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="model_id"/>
+                            <field name="model_name"/>
+                            <field name="approver_sequence"/>
+                            <field name="approval_minimum"/>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="type"/>
+                            <field name="filter_domain" widget="domain"
+                                   options="{'model': 'model_name', 'in_dialog': True}"/>
+                            <field name="action_id" required="1" domain="[('res_model', '=', model_name)]"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approver">
+                            <field name="approver_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="user_id" required="1"/>
+                                    <field name="required"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id='action_record_approval' model='ir.actions.act_window'>
+        <field name="name">Record Approval</field>
+        <field name="res_model">record.approval</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_record_approval_config"
+              name="Configuration"
+              parent="pways_record_approvals_menu_root"
+              groups="base.group_system"
+              sequence="20"/>
+
+    <menuitem id="menu_record_approval"
+              name="Approval Setting"
+              parent="menu_record_approval_config"
+              action="action_record_approval"
+              groups="base.group_system"
+              sequence="1"/>
+
+    <record id="record_approved_view_tree" model="ir.ui.view">
+        <field name="name">record.approved.view.tree</field>
+        <field name="model">record.approved</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0">
+                <field name="res_model"/>
+                <field name="res_id"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="record_approved_view_form" model="ir.ui.view">
+        <field name="name">record.approved.view.form</field>
+        <field name="model">record.approved</field>
+        <field name="arch" type="xml">
+            <form string="Record Approved" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="res_model"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="res_id"/>
+                            <field name="date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id='action_record_approved' model='ir.actions.act_window'>
+        <field name="name">Record Approved</field>
+        <field name="res_model">record.approved</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_record_approved"
+              name="Approvalls"
+              parent="pways_record_approvals_menu_root"
+              action="action_record_approved"
+              sequence="10"
+              groups="base.group_system"/>
+</odoo>

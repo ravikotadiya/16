@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="approver_leave_form_view" model="ir.ui.view">
+            <field name="name">approver.leave.form.view</field>
+            <field name="model">approver.leave</field>
+            <field name="arch" type="xml">
+                <form string="Approver Leave">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="leave_user_id" string="Approver On Leave" required="1"/>
+                                <field name="user_id" string="Approver" required="1"/>
+                            </group>
+                            <group>
+                                <field name="from_date" required="1"/>
+                                <field name="to_date" required="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="approver_leave_tree_view" model="ir.ui.view">
+            <field name="name">approver.leave.tree.view</field>
+            <field name="model">approver.leave</field>
+            <field name="arch" type="xml">
+                <tree string="Approver Leave">
+                    <field name="leave_user_id" string="Approver On Leave"/>
+                    <field name="user_id" string="Approver"/>
+                    <field name="from_date"/>
+                    <field name="to_date"/>
+                </tree>
+            </field>
+        </record>
+        <record id="approver_leave_action" model="ir.actions.act_window">
+            <field name="name">Approver On Leave</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">approver.leave</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no Approver on leave click here to create new one.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Approver On Leave" id="menu_approver_on_leave" parent="menu_record_approval_config"
+                  action="approver_leave_action"/>
+
+    </data>
+</odoo>
